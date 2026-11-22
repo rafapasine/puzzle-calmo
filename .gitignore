@@ -1,0 +1,27 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+pubspec.lock
+
+# Android (gerado)
+android/.gradle/
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+
+# APKs gerados localmente
+*.apk
+*.aab
+
+# IDEs e sistema
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db

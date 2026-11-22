@@ -1,0 +1,69 @@
+# Gera o APK do Puzzle Calmo nos servidores do GitHub a cada envio para o
+# branch "main" (ou manualmente: aba Actions -> Gerar APK -> Run workflow).
+# O APK fica disponível como "artifact" da execução e no branch "apk".
+name: Gerar APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Conferir catálogo com o espelho em Python
+        run: python3 ferramentas/conferir_catalogo.py
+
+      - name: Criar estrutura Android (primeira vez)
+        run: |
+          if [ ! -d android ]; then
+            flutter create --platforms=android --org br.puzzlecalmo --project-name puzzle_calmo .
+          fi
+          sed -i 's/android:label="[^"]*"/android:label="Puzzle Calmo"/' android/app/src/main/AndroidManifest.xml
+
+      - name: Dependências
+        run: flutter pub get
+
+      - name: Análise estática (só informa)
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Testes (catálogo + interface)
+        run: flutter test
+
+      - name: Gerar APK release
+        run: |
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk PuzzleCalmo.apk
+          ls -lh PuzzleCalmo.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PuzzleCalmo-apk
+          path: PuzzleCalmo.apk
+
+      - name: Publicar APK no branch "apk"
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan apk
+          git rm -rf --cached . > /dev/null
+          git add -f PuzzleCalmo.apk
+          git commit -m "APK de ${GITHUB_SHA::7}"
+          git push -f origin apk

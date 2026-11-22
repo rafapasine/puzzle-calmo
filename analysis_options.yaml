@@ -1,0 +1,5 @@
+# Análise estática padrão do Dart (sem pacotes de lint extras, para o projeto
+# funcionar sem dependências além de shared_preferences).
+analyzer:
+  errors:
+    todo: ignore
