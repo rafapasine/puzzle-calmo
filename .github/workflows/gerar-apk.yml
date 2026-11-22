@@ -6,6 +6,9 @@ name: Gerar APK
 on:
   push:
     branches: [main]
+    paths-ignore:          # mudanças só na versão de PC ou no README não geram APK
+      - 'versao-pc/**'
+      - 'README.md'
   workflow_dispatch:
 
 permissions:
